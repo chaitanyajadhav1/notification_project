@@ -2,40 +2,20 @@ import nodemailer from 'nodemailer';
 import twilio from 'twilio';
 import { Notification } from '@/types/Notification';
 
-// ✅ Email service - Updated for Render compatibility
+// Email service
 export async function sendEmail(notification: Notification) {
   // Check if email credentials are available
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     throw new Error('Email credentials not configured');
   }
 
-  // ⚠️ CRITICAL FIX: Don't use 'service: gmail' on Render
-  // Instead, configure manually with port 2525 or use SMTP2GO/SendGrid
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587, // Try 587 with starttls
-    secure: false, // true for 465, false for other ports
+    service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // Must be Gmail App Password
+      pass: process.env.EMAIL_PASS,
     },
-    tls: {
-      rejectUnauthorized: false, // Allow self-signed certificates
-    },
-    // Increased timeouts for Render
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
   });
-
-  // Verify connection before sending
-  try {
-    await transporter.verify();
-    console.log('✅ SMTP connection verified');
-  } catch (verifyError: any) {
-    console.error('❌ SMTP verification failed:', verifyError.message);
-    // Try to send anyway, as verify() can be flaky
-  }
 
   const info = await transporter.sendMail({
     from: process.env.EMAIL_USER,
@@ -44,7 +24,7 @@ export async function sendEmail(notification: Notification) {
     text: notification.message,
   });
   
-  console.log('✅ Email sent:', info.messageId);
+  console.log('Email sent:', info.messageId);
   return info;
 }
 
@@ -56,8 +36,12 @@ if (process.env.TWILIO_SID && process.env.TWILIO_AUTH_TOKEN) {
     process.env.TWILIO_AUTH_TOKEN
   );
 } else {
-  console.warn('⚠️ Twilio credentials not configured');
+  console.warn('Twilio credentials not configured');
 }
+
+// SMS service
+// src/lib/notificationService.ts
+// ... other imports and code ...
 
 // SMS service
 export async function sendSMS(notification: Notification) {
@@ -79,13 +63,14 @@ export async function sendSMS(notification: Notification) {
   const result = await twilioClient.messages.create({
     body: notification.message,
     from: process.env.TWILIO_PHONE,
-    to: to,
+    to: to, // Use the formatted recipient
   });
   
-  console.log('✅ SMS sent:', result.sid);
+  console.log('SMS sent:', result.sid);
   return result;
 }
 
+// ... rest of the code ...
 // WhatsApp service
 export async function sendWhatsApp(notification: Notification) {
   if (!twilioClient) {
@@ -95,21 +80,12 @@ export async function sendWhatsApp(notification: Notification) {
     throw new Error('Twilio WhatsApp number not configured');
   }
 
-  // Ensure proper WhatsApp format
-  const to = notification.recipient.startsWith('whatsapp:')
-    ? notification.recipient
-    : `whatsapp:${notification.recipient}`;
-
-  const from = process.env.TWILIO_WHATSAPP.startsWith('whatsapp:')
-    ? process.env.TWILIO_WHATSAPP
-    : `whatsapp:${process.env.TWILIO_WHATSAPP}`;
-
   const result = await twilioClient.messages.create({
     body: notification.message,
-    from: from,
-    to: to,
+    from: `whatsapp:${process.env.TWILIO_WHATSAPP}`,
+    to: `whatsapp:${notification.recipient}`,
   });
   
-  console.log('✅ WhatsApp message sent:', result.sid);
+  console.log('WhatsApp message sent:', result.sid);
   return result;
 }

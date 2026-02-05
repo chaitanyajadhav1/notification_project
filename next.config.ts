@@ -5,21 +5,13 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // Add these configurations to help with build traces
+  // Disable standalone output to skip build trace collection
+  output: undefined,
+  
   experimental: {
-    // Optimize build trace collection
-    optimizePackageImports: ['lucide-react', 'date-fns'], // Add your heavy packages here
+    // Optimize package imports for faster builds
+    optimizePackageImports: ['lucide-react'],
   },
-  
-  // Reduce what gets traced
-  outputFileTracingIgnores: [
-    '**/.git/**',
-    '**/node_modules/.cache/**',
-    '**/node_modules/@swc/**',
-  ],
-  
-  // Explicitly set output mode
-  output: 'standalone',
 };
 
 export default nextConfig;

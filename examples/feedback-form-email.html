@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Form</title>
+</head>
+
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0"
+                    style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #28a745; padding: 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px;">We Value Your Feedback</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.5;">
+                                Hello! We'd love to hear about your experience. Your feedback helps us improve our
+                                services.
+                            </p>
+
+                            <!-- Form -->
+                            <form action="https://yourapp.com/api/feedback" method="POST">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td style="padding-bottom: 20px;">
+                                            <label
+                                                style="display: block; margin-bottom: 8px; color: #333333; font-weight: bold; font-size: 14px;">Your
+                                                Name *</label>
+                                            <input type="text" name="name" required
+                                                style="width: 100%; padding: 12px; border: 1px solid #dddddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style="padding-bottom: 20px;">
+                                            <label
+                                                style="display: block; margin-bottom: 8px; color: #333333; font-weight: bold; font-size: 14px;">Email
+                                                *</label>
+                                            <input type="email" name="email" required
+                                                style="width: 100%; padding: 12px; border: 1px solid #dddddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style="padding-bottom: 20px;">
+                                            <label
+                                                style="display: block; margin-bottom: 8px; color: #333333; font-weight: bold; font-size: 14px;">Rating
+                                                *</label>
+                                            <select name="rating" required
+                                                style="width: 100%; padding: 12px; border: 1px solid #dddddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                                                <option value="">Select a rating</option>
+                                                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                                <option value="4">⭐⭐⭐⭐ Good</option>
+                                                <option value="3">⭐⭐⭐ Average</option>
+                                                <option value="2">⭐⭐ Poor</option>
+                                                <option value="1">⭐ Very Poor</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style="padding-bottom: 20px;">
+                                            <label
+                                                style="display: block; margin-bottom: 8px; color: #333333; font-weight: bold; font-size: 14px;">Your
+                                                Feedback *</label>
+                                            <textarea name="feedback" required rows="5"
+                                                style="width: 100%; padding: 12px; border: 1px solid #dddddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; resize: vertical;"></textarea>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center">
+                                            <button type="submit"
+                                                style="background-color: #28a745; color: #ffffff; padding: 14px 40px; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block;">
+                                                Submit Feedback
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td
+                            style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
+                            <p style="margin: 0; color: #999999; font-size: 12px;">
+                                Thank you for taking the time to share your thoughts!
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

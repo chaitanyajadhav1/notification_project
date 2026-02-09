@@ -4,4 +4,5 @@ export interface Notification {
   message: string;
   type: 'email' | 'sms' | 'whatsapp';
   subject?: string;
+  html?: string; // Optional HTML content for emails
 }

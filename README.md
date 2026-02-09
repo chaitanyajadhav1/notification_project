@@ -32,6 +32,7 @@ API_KEY=your-secret-api-key-here
 # Email Configuration (Gmail)
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-specific-password
+EMAIL_SENDER_NAME=Hospital Management System
 
 # Twilio Configuration (Optional - for SMS/WhatsApp)
 TWILIO_SID=your-twilio-account-sid

@@ -38,8 +38,12 @@ function getEmailTransporter() {
 export async function sendEmail(notification: Notification) {
   const transporter = getEmailTransporter();
 
+  // Configure sender with display name if available
+  const senderName = process.env.EMAIL_SENDER_NAME || 'Notification Service';
+  const fromAddress = `"${senderName}" <${process.env.EMAIL_USER}>`;
+
   const mailOptions: any = {
-    from: process.env.EMAIL_USER,
+    from: fromAddress,
     to: notification.recipient,
     subject: notification.subject || 'Notification',
     text: notification.message, // Plain text fallback

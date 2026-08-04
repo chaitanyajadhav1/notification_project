@@ -1,8 +1,10 @@
 import nodemailer from 'nodemailer';
-import twilio from 'twilio';
 import { Notification } from '@/types/Notification';
 
-// Email service with connection pooling
+// ─────────────────────────────────────────────────
+// Email Service (unchanged — uses nodemailer)
+// ─────────────────────────────────────────────────
+
 let emailTransporter: nodemailer.Transporter | null = null;
 
 function getEmailTransporter() {
@@ -60,64 +62,203 @@ export async function sendEmail(notification: Notification) {
   return info;
 }
 
-// Twilio setup
-let twilioClient: any = null;
-if (process.env.TWILIO_SID && process.env.TWILIO_AUTH_TOKEN) {
-  twilioClient = twilio(
-    process.env.TWILIO_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
-} else {
-  console.warn('Twilio credentials not configured');
+// ─────────────────────────────────────────────────
+// MSG91 Configuration
+// ─────────────────────────────────────────────────
+
+function getMsg91AuthKey(): string {
+  const authKey = process.env.MSG91_AUTH_KEY;
+  if (!authKey) {
+    throw new Error('MSG91 auth key not configured. Set MSG91_AUTH_KEY in .env');
+  }
+  return authKey;
 }
 
-// SMS service
-// src/lib/notificationService.ts
-// ... other imports and code ...
+// ─────────────────────────────────────────────────
+// SMS Service (MSG91 Flow API)
+// ─────────────────────────────────────────────────
 
-// SMS service
+// export async function sendSMS(notification: Notification) {
+//   const authKey = getMsg91AuthKey();
+//   const templateId = process.env.MSG91_SMS_TEMPLATE_ID;
+//   const senderId = process.env.MSG91_SENDER_ID;
+
+//   if (!templateId) {
+//     throw new Error('MSG91 SMS template ID not configured. Set MSG91_SMS_TEMPLATE_ID in .env');
+//   }
+//   if (!senderId) {
+//     throw new Error('MSG91 Sender ID not configured. Set MSG91_SENDER_ID in .env');
+//   }
+
+//   // Ensure recipient has country code (strip leading '+' if present)
+//   const mobile = notification.recipient.startsWith('+')
+//     ? notification.recipient.substring(1)
+//     : notification.recipient;
+
+//   console.log('Sending SMS via MSG91 to:', mobile);
+//   console.log('SMS content:', notification.message);
+
+//   const payload = {
+//     template_id: templateId,
+//     sender: senderId,
+//     short_url: '0',
+//     mobiles: mobile,
+//     // MSG91 uses template variables — pass the message as a variable
+//     message: notification.message,
+//   };
+
+//   const response = await fetch('https://control.msg91.com/api/v5/flow', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       authkey: authKey,
+//     },
+//     body: JSON.stringify(payload),
+//   });
+
+//   const result = await response.json();
+
+//   if (!response.ok) {
+//     console.error('MSG91 SMS error:', result);
+//     throw new Error(result.message || `MSG91 SMS failed with status ${response.status}`);
+//   }
+
+//   console.log('SMS sent via MSG91:', result);
+//   return result;
+// }
+
 export async function sendSMS(notification: Notification) {
-  if (!twilioClient) {
-    throw new Error('Twilio not configured');
+  const authKey = process.env.MSG91_AUTH_KEY;
+  const templateId = process.env.MSG91_SMS_TEMPLATE_ID;
+  const senderId = process.env.MSG91_SENDER_ID;
+
+  if (!authKey) throw new Error("MSG91_AUTH_KEY missing");
+  if (!templateId) throw new Error("MSG91_SMS_TEMPLATE_ID missing");
+  if (!senderId) throw new Error("MSG91_SENDER_ID missing");
+
+  const mobile = notification.recipient.startsWith("+")
+    ? notification.recipient.slice(1)
+    : notification.recipient;
+
+  console.log("Sending SMS to:", mobile);
+
+  const payload = {
+    template_id: templateId,
+    sender: senderId,
+    short_url: "0",
+    mobiles: mobile,
+
+    // Variable name must match your template placeholder
+    num: notification.message.match(/\d+/)?.[0] || "000000",
+  };
+
+  console.log(
+    "Payload:",
+    JSON.stringify(payload, null, 2)
+  );
+
+  const response = await fetch(
+    "https://control.msg91.com/api/v5/flow/",
+    {
+      method: "POST",
+      headers: {
+        authkey: authKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const result = await response.json();
+
+  console.log(
+    "MSG91 Response:",
+    JSON.stringify(result, null, 2)
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      result.message || "SMS sending failed"
+    );
   }
-  if (!process.env.TWILIO_PHONE) {
-    throw new Error('Twilio phone number not configured');
-  }
 
-  // Ensure recipient is in E.164 format (e.g., +1234567890)
-  const to = notification.recipient.startsWith('+')
-    ? notification.recipient
-    : `+${notification.recipient}`;
-
-  console.log('Sending SMS to:', to);
-  console.log('SMS content:', notification.message);
-
-  const result = await twilioClient.messages.create({
-    body: notification.message,
-    from: process.env.TWILIO_PHONE,
-    to: to, // Use the formatted recipient
-  });
-
-  console.log('SMS sent:', result.sid);
   return result;
 }
 
-// ... rest of the code ...
-// WhatsApp service
+// ─────────────────────────────────────────────────
+// WhatsApp Service (MSG91 WhatsApp API)
+// ─────────────────────────────────────────────────
+
 export async function sendWhatsApp(notification: Notification) {
-  if (!twilioClient) {
-    throw new Error('Twilio not configured');
+  const authKey = getMsg91AuthKey();
+  const templateName = process.env.MSG91_WHATSAPP_TEMPLATE_NAME;
+  const integratedNumber = process.env.MSG91_WHATSAPP_INTEGRATED_NUMBER;
+
+  if (!templateName) {
+    throw new Error(
+      'MSG91 WhatsApp template name not configured. Set MSG91_WHATSAPP_TEMPLATE_NAME in .env'
+    );
   }
-  if (!process.env.TWILIO_WHATSAPP) {
-    throw new Error('Twilio WhatsApp number not configured');
+  if (!integratedNumber) {
+    throw new Error(
+      'MSG91 WhatsApp integrated number not configured. Set MSG91_WHATSAPP_INTEGRATED_NUMBER in .env'
+    );
   }
 
-  const result = await twilioClient.messages.create({
-    body: notification.message,
-    from: `whatsapp:${process.env.TWILIO_WHATSAPP}`,
-    to: `whatsapp:${notification.recipient}`,
-  });
+  // Ensure recipient has country code (strip leading '+' if present)
+  const mobile = notification.recipient.startsWith('+')
+    ? notification.recipient.substring(1)
+    : notification.recipient;
 
-  console.log('WhatsApp message sent:', result.sid);
+  console.log('Sending WhatsApp message via MSG91 to:', mobile);
+
+  const payload = {
+    integrated_number: integratedNumber,
+    content_type: 'template',
+    payload: {
+      messaging_product: 'whatsapp',
+      type: 'template',
+      template: {
+        name: templateName,
+        language: {
+          code: 'en',
+          policy: 'deterministic',
+        },
+        namespace: process.env.MSG91_WHATSAPP_NAMESPACE || '',
+        to_and_components: [
+          {
+            to: [mobile],
+            components: {
+              body_1: {
+                type: 'text',
+                value: notification.message,
+              },
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  const response = await fetch(
+    'https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authkey: authKey,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.error('MSG91 WhatsApp error:', result);
+    throw new Error(result.message || `MSG91 WhatsApp failed with status ${response.status}`);
+  }
+
+  console.log('WhatsApp message sent via MSG91:', result);
   return result;
 }
